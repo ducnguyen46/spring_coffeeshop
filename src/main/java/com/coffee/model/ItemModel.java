@@ -13,6 +13,10 @@ public class ItemModel {
 	private String ice;	
 	private String sugar;
 	
+	public ItemModel() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	public ItemModel(Item item) {
 		this.id = item.getId();
 		this.product = new ProductModel(item.getProduct());

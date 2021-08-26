@@ -52,10 +52,15 @@ public class DeliveryInfoService {
 		    List<DeliveryInfoModel> deliveryInfoModels = new ArrayList<>();
 		    List<DeliveryInfo> deliveryInfos = deliveryInfoRepository.getDeliveryInfoByUsername(currentUserName);
 		    
+		    System.out.println("Size of list 1 - " + deliveryInfos.size());
+		    
 		    for(DeliveryInfo deliveryInfo : deliveryInfos) {
 		    	DeliveryInfoModel deliveryInfoModel = new DeliveryInfoModel(deliveryInfo);
 		    	deliveryInfoModels.add(deliveryInfoModel);
 		    }
+		    
+		    System.out.println("Size of list 2 - " + deliveryInfoModels.size());
+
 		    
 		    return deliveryInfoModels;
 		}

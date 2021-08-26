@@ -9,6 +9,10 @@ public class CategoryModel {
 		this.name = category.getName();
 	}
 	
+	public CategoryModel() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	private Long id;
 	private String name;
 	

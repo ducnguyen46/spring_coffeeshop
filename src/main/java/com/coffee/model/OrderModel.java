@@ -26,6 +26,7 @@ public class OrderModel {
 		for(Item item : order.getItems()) {
 			listItems.add(new ItemModel(item));
 		}
+		this.items = listItems;
 	}
 	
 	public Long getId() {

@@ -10,6 +10,10 @@ public class ProductModel {
 	private String image;
 	private CategoryModel category;
 	
+	public ProductModel() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	public ProductModel(Product product) {
 		this.id = product.getId();
 		this.name = product.getName();

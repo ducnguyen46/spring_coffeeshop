@@ -16,5 +16,7 @@ public interface ItemRepository extends JpaRepository<Item, Long>{
 	@Query(value = "SELECT i FROM Item i, Order o WHERE i.order.id = :orderId")
 	List<Item> getItemsByOrderId(@Param("orderId") Long orderId);
 	
-	
+	@Transactional
+	@Query(value = "SELECT i FROM Item i, Order o, User u WHERE i.order.user.username = :username")
+	List<Item> getAllItemsOfUser(@Param("username") String username);
 }

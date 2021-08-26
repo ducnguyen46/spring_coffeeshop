@@ -34,4 +34,36 @@ public class BillService {
 		
 		return billModels;
 	}
+	
+	public List<BillModel> getBillOnGoingOfUser(){
+		List<BillModel> billModels = new ArrayList<>();
+		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (!(authentication instanceof AnonymousAuthenticationToken)) {
+		    String currentUserName = authentication.getName();
+		    
+		    List<Bill> bills = billRepository.getAllBillOnGoing(currentUserName);
+		    for(Bill bill : bills) {
+		    	billModels.add(new BillModel(bill));
+		    }
+		}
+		
+		return billModels;
+	}
+	
+	public List<BillModel> getBillCompleteOfUser(){
+		List<BillModel> billModels = new ArrayList<>();
+		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (!(authentication instanceof AnonymousAuthenticationToken)) {
+		    String currentUserName = authentication.getName();
+		    
+		    List<Bill> bills = billRepository.getAllBillComplete(currentUserName);
+		    for(Bill bill : bills) {
+		    	billModels.add(new BillModel(bill));
+		    }
+		}
+		
+		return billModels;
+	}
 }

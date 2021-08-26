@@ -3,6 +3,7 @@ package com.coffee.service;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -55,6 +56,9 @@ public class OrderService {
 	@Autowired
 	private DeliveryInfoRepository deliveryInfoRepository;
 
+	@Autowired
+	private UserService userService;
+
 	@Transactional
 	public boolean createOrder(OrderDto orderDto) {
 		double amount = 0;
@@ -69,47 +73,49 @@ public class OrderService {
 
 			User user = userRepository.getUserByUsername(currentUserName).get(0);
 			order.setUser(user);
-			return false;
+
+			if (orderDto.getVoucherId() != null) {
+				Voucher voucher = voucherRepository.getById(orderDto.getVoucherId());
+				order.setVoucher(voucher);
+
+				amount -= voucher.getValue();
+			}
+
+			Order orderSaved = orderRepository.save(order);
+
+			// chuyen itemmodel ve item
+			for (ItemModel itemModel : orderDto.getItems()) {
+				Item item = new Item(itemModel);
+				item.setOrder(orderSaved);
+				itemRepository.save(item);
+
+				amount += itemModel.getPriceIn() * itemModel.getQuantity();
+			}
+
+			// tao shipment
+			Shipment shipment = new Shipment();
+
+			DeliveryInfo deliveryInfo = deliveryInfoRepository.getById(orderDto.getDeliveryId());
+			shipment.setOrder(orderSaved);
+			shipment.setDeliveryInfo(deliveryInfo);
+			shipment.setIsCompleted("false");
+			shipment.setShipperId("HN001");
+			shipment.setShipperName("Nguyen Ngoc Duc");
+			shipment.setShipperPhone("0961465453");
+
+			shipmentRepository.save(shipment);
+
+			Bill bill = new Bill();
+			bill.setOrder(orderSaved);
+			bill.setAmount(amount);
+
+			billRepository.save(bill);
+
+			// update user point
+			userService.updatePoint(Long.valueOf(String.valueOf(orderDto.getItems().size())));
+			return true;
 		}
-
-		if (orderDto.getVoucherId() != null) {
-			Voucher voucher = voucherRepository.getById(orderDto.getVoucherId());
-			order.setVoucher(voucher);
-			
-			amount -= voucher.getValue();
-		}
-
-		Order orderSaved = orderRepository.save(order);
-
-		// chuyen itemmodel ve item
-		for (ItemModel itemModel : orderDto.getItems()) {
-			Item item = new Item(itemModel);
-			item.setOrder(orderSaved);
-			itemRepository.save(item);
-
-			amount += itemModel.getPriceIn();
-		}
-
-		// tao shipment
-		Shipment shipment = new Shipment();
-
-		DeliveryInfo deliveryInfo = deliveryInfoRepository.getById(orderDto.getDeliveryId());
-		shipment.setOrder(orderSaved);
-		shipment.setDeliveryInfo(deliveryInfo);
-		shipment.setIsCompleted("false");
-		shipment.setShipperId("HN001");
-		shipment.setShipperName("Nguyen Ngoc Duc");
-		shipment.setShipperPhone("0961465453");
-
-		shipmentRepository.save(shipment);
-
-		Bill bill = new Bill();
-		bill.setOrder(orderSaved);
-		bill.setAmount(amount);
-
-		billRepository.save(bill);
-		
-		return true;
+		return false;
 	}
 
 	public List<OrderModel> getAllOrders() {
@@ -129,5 +135,23 @@ public class OrderService {
 		}
 
 		return orderModels;
+	}
+
+	@Transactional
+	public int completeOrder(Long orderId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (!(authentication instanceof AnonymousAuthenticationToken)) {
+			String currentUserName = authentication.getName();
+			User user = userRepository.getUserByUsername(currentUserName).get(0);
+
+			Optional<Order> optionalOrder = orderRepository.findById(orderId);
+			if (optionalOrder.isPresent()) {
+				Order completeOrder = optionalOrder.get();
+				if (completeOrder.getUser().getId() == user.getId()) {
+					return orderRepository.completeOrder(orderId);
+				}
+			}
+		}
+		return 0;
 	}
 }

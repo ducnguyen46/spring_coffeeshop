@@ -1,5 +1,6 @@
 package com.coffee.service;
 
+import java.awt.Point;
 import java.util.List;
 
 import com.coffee.constant.Constant;
@@ -105,4 +106,33 @@ public class UserService {
 		}
 		return new UserDto();
 	}
+	
+	@Transactional
+	public boolean updatePoint(Long point) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (!(authentication instanceof AnonymousAuthenticationToken)) {
+		    String currentUserName = authentication.getName();
+		    User user = userRepository.getUserByUsername(currentUserName).get(0);
+		    
+		    Long updatePoint = user.getPoint() + point;
+		   int result = userRepository.updatePoint(currentUserName, updatePoint);
+		    if(result != 0) {
+		    	if(updatePoint <= 8 && updatePoint >= 0) {
+		    		userRepository.updateReward(currentUserName, "New");
+		    	} else if(updatePoint > 8 && updatePoint <= 16){
+		    		userRepository.updateReward(currentUserName, "Bronze");
+		    	}else if(updatePoint > 16 && updatePoint <= 24){
+		    		userRepository.updateReward(currentUserName, "Silver");
+		    	}else if(updatePoint > 24 && updatePoint <= 32){
+		    		userRepository.updateReward(currentUserName, "Gold");
+		    	}else if(updatePoint > 32 ){
+		    		userRepository.updateReward(currentUserName, "Dinamond");
+		    	}
+		    	return true;
+		    }
+		}
+		return false;
+	}
+	
+	
 }

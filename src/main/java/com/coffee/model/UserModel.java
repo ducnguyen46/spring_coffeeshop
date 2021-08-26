@@ -9,6 +9,7 @@ import com.coffee.entity.User;
 
 public class UserModel {
 
+	
 	public UserModel(User user) {
 		this.id = user.getId();
 		this.fullName = user.getFullName();
